@@ -1,0 +1,31 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Search Results{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:2rem auto;">
+    <h2 style="margin-bottom:1.5rem;">Search Results for "{{ query }}"</h2>
+    <div style="margin-bottom:2rem;">
+        <h3 style="color:#1da1f2;">Users</h3>
+        {% if user_results %}
+            {% for u in user_results %}
+                <a href="{% url 'profile_view' u.username %}" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;text-decoration:none;color:inherit;">
+                    {% with userprofile=u.userprofile %}
+                        {% if userprofile.profile_photo %}
+                            <img src="{{ userprofile.profile_photo.url }}" alt="{{ u.username }}'s profile photo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            <div style="width:48px;height:48px;border-radius:50%;background:#23272f;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#71767b;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#1da1f2"/><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.31 0-6 2.01-6 4.5V20h12v-1.5c0-2.49-2.69-4.5-6-4.5z" fill="#fff"/></svg>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    <div>
+                        <div style="font-weight:700;">{{ u.username }}</div>
+                        <div style="color:#71767b;">@{{ u.username }}</div>
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div style="color:#71767b;">No users found.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

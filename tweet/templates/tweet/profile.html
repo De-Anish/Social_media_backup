@@ -1,0 +1,20 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="profile-card" style="text-align:center;padding:2rem 1rem;background:#232428;border-radius:1.5rem;box-shadow:0 2px 8px #1da1f2;max-width:500px;margin:2rem auto;">
+    {% if profile.profile_photo %}
+        <img src="{{ profile.profile_photo.url }}" alt="Profile Photo" style="width:120px;height:120px;object-fit:cover;border-radius:50%;box-shadow:0 2px 8px #1da1f2;margin-bottom:1rem;">
+    {% else %}
+        <div style="width:120px;height:120px;background:#18191c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="12" fill="#1da1f2"/>
+                <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.31 0-6 2.01-6 4.5V20h12v-1.5c0-2.49-2.69-4.5-6-4.5z" fill="#fff"/>
+            </svg>
+        </div>
+    {% endif %}
+    <div style="font-size:1.5rem;font-weight:700;color:#e1e1e1;margin-top:0.5rem;">{{ profile_user.username }}</div>
+    {% if user == profile_user %}
+        <a href="{% url 'profile_edit' %}" style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:#1da1f2;color:#fff;border-radius:2rem;text-decoration:none;font-weight:600;">Edit Profile</a>
+    {% endif %}
+</div>
+{% endblock %} 

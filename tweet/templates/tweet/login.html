@@ -1,0 +1,31 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:center;align-items:center;min-height:70vh;">
+  <div style="background:#181a22;padding:2.5rem 2.5rem 2rem 2.5rem;border-radius:1.5rem;box-shadow:0 4px 24px rgba(0,0,0,0.12);width:100%;max-width:370px;">
+    <h2 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:2rem;color:#fff;">Login</h2>
+    <form method="post" style="display:flex;flex-direction:column;gap:1.2rem;">
+      {% csrf_token %}
+      {% for field in form %}
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <label for="{{ field.id_for_label }}" style="color:#8a8f98;font-size:1rem;font-weight:600;">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      {% if form.errors %}
+        <div style="color: #ff4d4f; margin-top: 0.5rem;">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <button type="submit" style="background:#1da1f2;color:#fff;border:none;border-radius:9999px;padding:0.8rem 0;font-size:1.1rem;font-weight:700;cursor:pointer;margin-top:0.5rem;">Login</button>
+    </form>
+  </div>
+</div>
+{% endblock %} 

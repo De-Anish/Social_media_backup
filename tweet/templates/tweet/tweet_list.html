@@ -1,0 +1,434 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Tweet List{% endblock %}
+{% block content %}
+  <div class="tweet-list-bg">
+    {% if not user.is_authenticated %}
+      <div class="login-banner">
+        Please <a href="{% url 'login' %}">login</a> to create a tweet.
+      </div>
+    {% endif %}
+    
+    <h2 class="tweet-list-title">All Tweets</h2>
+    
+    <div class="tweet-container">
+      {% for t in tweets %}
+        <div class="tweet tweet-card">
+          <div class="tweet-header">
+            <a href="{% url 'profile_view' t.user.username %}" class="avatar-link">
+              {% with userprofile=t.user.userprofile %}
+                {% if userprofile.profile_photo %}
+                  <img src="{{ userprofile.profile_photo.url }}" alt="{{ t.user.username }}'s profile photo" class="tweet-avatar">
+                {% else %}
+                  <div class="tweet-avatar default-avatar">👤</div>
+                {% endif %}
+              {% endwith %}
+            </a>
+            <div class="tweet-user-info">
+              <div class="tweet-user">
+                <span class="tweet-name">{{ t.user.username }}</span>
+                <span class="tweet-handle">@{{ t.user.username }}</span>
+              </div>
+              <span class="tweet-time">{{ t.created_at|timesince }} ago</span>
+            </div>
+          </div>
+          
+          <div class="tweet-content">{{ t.text }}</div>
+          
+          {% if t.photo %}
+            <div class="tweet-media">
+              <img src="{{ t.photo.url }}" alt="Tweet Photo" class="tweet-image" loading="lazy">
+            </div>
+          {% endif %}
+          
+          <div class="tweet-actions">
+            <button class="tweet-action like-button">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g>
+              </svg>
+              <span class="action-count">12</span>
+            </button>
+            
+            <button class="tweet-action comment-button">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g>
+              </svg>
+              <span class="action-count">3</span>
+            </button>
+            
+            {% if user.is_authenticated and t.user == user %}
+              <div class="tweet-owner-actions">
+                <a href="{% url 'tweet_edit' t.id %}" class="edit-button">Edit</a>
+                <form action="{% url 'tweet_delete' t.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="delete-button">Delete</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-tweets">
+          <p>No tweets found. Be the first to post!</p>
+          {% if user.is_authenticated %}
+            <a href="/tweets/create/" class="create-tweet-button">Create Tweet</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+<style>
+  /* Base Styles */
+  .tweet-list-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #23243a 0%, #1d1f2b 100%);
+    padding-bottom: 3rem;
+  }
+  
+  .tweet-list-title {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 2.5rem 0 2rem 0;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  
+  .login-banner {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: #1da1f2;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    font-size: 0.9rem;
+  }
+  
+  .login-banner a {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  
+  .tweet-container {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 0 1rem;
+  }
+  
+  /* Tweet Card */
+  .tweet-card {
+    width: 100%;
+    background: rgba(22,24,28,0.98);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  
+  .tweet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(29,155,240,0.12);
+  }
+  
+  .tweet-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .avatar-link {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+  }
+  
+  .tweet-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #23272f;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  }
+  
+  .default-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  
+  .tweet-user-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .tweet-user {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+  }
+  
+  .tweet-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 0.5rem;
+  }
+  
+  .tweet-handle, .tweet-time {
+    color: #8a8f98;
+    font-size: 0.9rem;
+  }
+  
+  .tweet-time {
+    display: block;
+  }
+  
+  .tweet-content {
+    margin: 1rem 0;
+    word-break: break-word;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #e7e9ea;
+  }
+  
+  /* Tweet Media */
+  .tweet-media {
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #181a22;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    max-height: 220px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .tweet-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
+    border: 1px solid #23243a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    background: #23243a;
+    display: block;
+  }
+  @media (max-width: 700px) {
+    .tweet-media { max-width: 98vw; max-height: 130px; }
+    .tweet-image { max-width: 98vw; max-height: 130px; }
+  }
+  
+  /* Tweet Actions */
+  .tweet-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .tweet-action {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #8a8f98;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    transition: all 0.2s;
+  }
+  
+  .tweet-action:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+  }
+  
+  .tweet-action svg {
+    margin-right: 0.5rem;
+  }
+  
+  .action-count {
+    font-size: 0.9rem;
+  }
+  
+  .like-button:hover {
+    color: #f91880;
+  }
+  
+  .comment-button:hover {
+    color: #1da1f2;
+  }
+  
+  /* Owner Actions */
+  .tweet-owner-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  
+  .edit-button, .delete-button {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .edit-button {
+    background: rgba(29, 155, 240, 0.1);
+    color: #1da1f2;
+    border: 1px solid #1da1f2;
+    text-decoration: none;
+  }
+  
+  .edit-button:hover {
+    background: #1da1f2;
+    color: white;
+  }
+  
+  .delete-button {
+    background: rgba(244, 33, 46, 0.1);
+    color: #f4212e;
+    border: 1px solid #f4212e;
+  }
+  
+  .delete-button:hover {
+    background: #f4212e;
+    color: white;
+  }
+  
+  /* Empty State */
+  .empty-tweets {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #8a8f98;
+  }
+  
+  .create-tweet-button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #1da1f2;
+    color: white;
+    border-radius: 9999px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background-color 0.2s;
+  }
+  
+  .create-tweet-button:hover {
+    background-color: #1a8cd8;
+  }
+  
+  /* Responsive Breakpoints */
+  @media (max-width: 768px) {
+    .tweet-list-title {
+      font-size: 1.8rem;
+      margin: 1.5rem 0;
+    }
+    
+    .tweet-card {
+      padding: 1.25rem;
+    }
+    
+    .tweet-avatar {
+      width: 42px;
+      height: 42px;
+    }
+    
+    .tweet-content {
+      font-size: 1rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .tweet-list-title {
+      font-size: 1.5rem;
+    }
+    
+    .login-banner {
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+    }
+    
+    .tweet-container {
+      gap: 1rem;
+      padding: 0 0.75rem;
+    }
+    
+    .tweet-card {
+      padding: 1rem;
+      border-radius: 1rem;
+    }
+    
+    .tweet-avatar {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .tweet-name {
+      font-size: 1rem;
+    }
+    
+    .tweet-handle, .tweet-time {
+      font-size: 0.8rem;
+    }
+    
+    .tweet-actions {
+      padding-top: 0.5rem;
+    }
+    
+    .tweet-action {
+      padding: 0.25rem;
+    }
+    
+    .tweet-action svg {
+      width: 16px;
+      height: 16px;
+      margin-right: 0.25rem;
+    }
+    
+    .action-count {
+      font-size: 0.8rem;
+    }
+    
+    .edit-button, .delete-button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .tweet-user {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .tweet-handle {
+      margin-left: 0;
+    }
+  }
+</style>

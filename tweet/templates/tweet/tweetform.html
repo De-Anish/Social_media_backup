@@ -1,0 +1,367 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Create Tweet{% endblock %}
+
+{% block content %}
+  <style>
+    .create-tweet-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #16181c;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .create-tweet-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #e7e9ea;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .tweet-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-label {
+      color: #e7e9ea;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    
+
+    .text-input {
+      width: 100%;
+      min-height: 12px;
+      padding: 1rem;
+      background: #1d1f23;
+      border: 1px solid #38444d;
+      border-radius: 8px;
+      color: #e7e9ea;
+      font-size: 1rem;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: #1da1f2;
+      background: #1d1f23;
+    }
+
+    .text-input::placeholder {
+      color: #71767b;
+    }
+
+    .char-counter {
+      text-align: right;
+      font-size: 0.8rem;
+      color: #71767b;
+      margin-top: 0.25rem;
+    }
+
+    .photo-upload-section {
+      border: 2px dashed #38444d;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #1d1f23;
+    }
+
+    .photo-upload-section:hover {
+      border-color: #1da1f2;
+      background: #1a1c20;
+    }
+
+    .photo-upload-section.dragover {
+      border-color: #1da1f2;
+      background: #1a1c20;
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      color: #71767b;
+      margin-bottom: 1rem;
+    }
+
+    .upload-text {
+      color: #e7e9ea;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+      color: #71767b;
+      font-size: 0.8rem;
+    }
+
+    .photo-preview {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .photo-preview img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .submit-button {
+      background: #1da1f2;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .submit-button:hover {
+      background: #1a8cd8;
+    }
+
+    .submit-button:disabled {
+      background: #38444d;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      color: #f4212e;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .create-tweet-container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      
+      .create-tweet-header {
+        font-size: 1.3rem;
+      }
+      
+      .photo-upload-section {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .create-tweet-container {
+        margin: 0.5rem;
+        padding: 1rem;
+      }
+      
+      .text-input {
+        min-height: 100px;
+        font-size: 0.9rem;
+      }
+      
+      .submit-button {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+
+  <div class="create-tweet-container">
+    <div class="create-tweet-header">
+      Create a New Tweet
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="tweet-form">
+      {% csrf_token %}
+      
+      <!-- Text Input Section -->
+      <div class="form-group">
+        <label for="id_text" class="form-label">What's happening?</label>
+        {{ form.text }}
+        <div class="char-counter">
+          <span id="char-count">240</span> characters remaining
+        </div>
+      </div>
+
+      <!-- Photo Upload Section -->
+      <div class="form-group">
+        <label class="form-label">Add Photo (Optional)</label>
+        <div class="photo-upload-section" id="photo-upload">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click to upload or drag and drop</div>
+          <div class="upload-hint">PNG, JPG, GIF - will be automatically resized</div>
+          {{ form.photo }}
+        </div>
+        <div class="photo-preview" id="photo-preview">
+          <img id="preview-image" src="" alt="Preview">
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-button" id="submit-btn">
+        Post Tweet
+      </button>
+
+      <!-- Error Messages -->
+      {% if form.errors %}
+        <div class="error-message">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              {{ error }}
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <script>
+    // Get DOM elements
+    const textInput = document.getElementById('id_text');
+    const charCount = document.getElementById('char-count');
+    const photoUpload = document.getElementById('photo-upload');
+    const fileInput = document.getElementById('id_photo');
+    const photoPreview = document.getElementById('photo-preview');
+    const previewImage = document.getElementById('preview-image');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Character counter
+    textInput.addEventListener('input', function() {
+      const remaining = 240 - this.value.length;
+      charCount.textContent = remaining;
+      
+      if (remaining < 0) {
+        charCount.style.color = '#f4212e';
+        submitBtn.disabled = true;
+      } else {
+        charCount.style.color = '#71767b';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Photo upload click handler
+    photoUpload.addEventListener('click', function() {
+      fileInput.click();
+    });
+
+    // File input change handler
+    fileInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        displayImagePreview(file);
+      }
+    });
+
+    // Drag and drop handlers
+    photoUpload.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('dragover');
+    });
+
+    photoUpload.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+    });
+
+    photoUpload.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+      
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        fileInput.files = e.dataTransfer.files;
+        displayImagePreview(file);
+      }
+    });
+
+    // Display image preview with resizing
+    function displayImagePreview(file) {
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Calculate new dimensions (max 800px width, 600px height)
+            let { width, height } = img;
+            const maxWidth = 800;
+            const maxHeight = 600;
+            
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw resized image
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to blob and update file input
+            canvas.toBlob(function(blob) {
+              const resizedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now()
+              });
+              
+              // Create a new FileList-like object
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(resizedFile);
+              fileInput.files = dataTransfer.files;
+              
+              // Display preview
+              previewImage.src = canvas.toDataURL(file.type);
+              photoPreview.style.display = 'block';
+            }, file.type, 0.8); // 80% quality
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Form validation
+    document.querySelector('.tweet-form').addEventListener('submit', function(e) {
+      const text = textInput.value.trim();
+      if (!text) {
+        e.preventDefault();
+        alert('Please enter some text for your tweet.');
+        return false;
+      }
+      
+      if (text.length > 240) {
+        e.preventDefault();
+        alert('Tweet text cannot exceed 240 characters.');
+        return false;
+      }
+    });
+  </script>
+{% endblock %}

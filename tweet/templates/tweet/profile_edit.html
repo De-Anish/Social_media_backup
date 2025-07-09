@@ -1,0 +1,72 @@
+{% extends "tweet/layout.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="profile-edit-container" style="max-width:500px;margin:2rem auto;padding:2rem;background:#16181c;border-radius:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="color:#e7e9ea;text-align:center;">Edit Profile</h2>
+    <form method="post" enctype="multipart/form-data" style="margin-top:2rem;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+        {% csrf_token %}
+        <div id="profile-photo-preview-container" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+        {% if profile.profile_photo %}
+            <img id="profile-photo-preview" src="{{ profile.profile_photo.url }}" alt="Profile Photo" style="width:120px;height:120px;object-fit:cover;border-radius:50%;box-shadow:0 2px 8px #1da1f2;">
+        {% else %}
+            <div id="profile-photo-preview" style="width:120px;height:120px;background:#23272f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#71767b;box-shadow:0 2px 8px #1da1f2;">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#1da1f2"/><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.31 0-6 2.01-6 4.5V20h12v-1.5c0-2.49-2.69-4.5-6-4.5z" fill="#fff"/></svg>
+            </div>
+        {% endif %}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;margin-top:1.5rem;">
+            <label for="id_profile_photo" style="color:#e7e9ea;cursor:pointer;background:#23272f;padding:0.5rem 1.5rem;border-radius:2rem;border:1px solid #38444d;transition:background 0.2s;display:block;min-width:160px;text-align:center;">Change Profile Photo</label>
+            <input id="id_profile_photo" name="profile_photo" type="file" accept="image/*" style="display:none;">
+            {% if profile.profile_photo %}
+            <form method="post" style="margin:0;width:100%;">
+                {% csrf_token %}
+                <button type="submit" name="remove_photo" value="1" style="background:#e02424;color:#fff;border:none;border-radius:1rem;padding:0.3rem 1.2rem;font-weight:600;cursor:pointer;min-width:160px;display:block;text-align:center;">Remove Photo</button>
+            </form>
+            {% endif %}
+            <button type="submit" style="background:#1da1f2;color:#fff;border:none;border-radius:2rem;font-weight:600;min-width:160px;display:block;text-align:center;">Save</button>
+        </div>
+        <label for="id_username" style="color:#e7e9ea;">Username</label>
+        <input type="text" id="id_username" name="username" value="{{ user.username }}" maxlength="150" required style="padding:0.5rem 1rem;border-radius:1rem;border:1px solid #38444d;background:#23272f;color:#e7e9ea;width:100%;max-width:300px;">
+        {% if form.errors or form.non_field_errors %}
+            <div style="color:#f4212e;font-size:0.95rem;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}{{ error }}<br>{% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+            </div>
+        {% endif %}
+        {% if form.errors.username %}
+            <div style="color:#f4212e;font-size:0.95rem;">
+                {% for error in form.errors.username %}{{ error }}<br>{% endfor %}
+            </div>
+        {% endif %}
+    </form>
+    <script>
+    // Live profile photo preview
+    document.getElementById('id_profile_photo').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                let preview = document.getElementById('profile-photo-preview');
+                if (preview.tagName === 'DIV') {
+                    // Replace SVG placeholder with img
+                    const img = document.createElement('img');
+                    img.id = 'profile-photo-preview';
+                    img.style.width = '120px';
+                    img.style.height = '120px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    img.style.boxShadow = '0 2px 8px #1da1f2';
+                    img.src = ev.target.result;
+                    preview.parentNode.replaceChild(img, preview);
+                } else {
+                    preview.src = ev.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    </script>
+</div>
+{% endblock %} 

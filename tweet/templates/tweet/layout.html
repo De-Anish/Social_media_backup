@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tweet Feed{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Global hidden CSRF token for AJAX -->
+    <form id="csrf-token-form" style="display:none;">{% csrf_token %}</form>
+    <div style="width:100%;text-align:center;padding:1.2rem 0 0.5rem 0;font-size:2rem;font-weight:700;color:#1da1f2;letter-spacing:0.05em;"> Social Media</div>
+<div class="site-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar-left">
+        <div class="profile-card">
+            {% if user.is_authenticated and user.userprofile.profile_photo %}
+                <img src="{{ user.userprofile.profile_photo.url }}" class="avatar" alt="Profile Photo">
+            {% else %}
+                <div class="avatar avatar-placeholder">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="12" fill="#1da1f2"/>
+                        <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.31 0-6 2.01-6 4.5V20h12v-1.5c0-2.49-2.69-4.5-6-4.5z" fill="#fff"/>
+                    </svg>
+                </div>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <h3>{{ user.username }}</h3>
+            {% else %}
+                <h3>Guest</h3>
+            {% endif %}
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-link{% if request.path == '/' %} active{% endif %}">🏠 Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'my_posts' %}" class="nav-link{% if request.path == '/my-posts/' %} active{% endif %}">🗂️ My Posts</a>
+                <a href="{% url 'profile_view' user.username %}" class="nav-link{% if '/profile/' in request.path %} active{% endif %}">👤 Profile</a>
+                <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link logout-link">🚪 Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-link{% if request.path == '/login/' %} active{% endif %}">👤 Login</a>
+            {% endif %}
+        </nav>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+        {% block right_sidebar %}{% endblock %}
+    </aside>
+</div>
+</body>
+</html>
